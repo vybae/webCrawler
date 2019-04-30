@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{share/layout}">
+<head>
+    <title>项目明细</title>
+</head>
+<body>
+<th:block layout:fragment="additionFilter">
+</th:block>
+
+<div layout:fragment="content">
+    <h1 th:text="${pjname}"></h1>
+    <h3 th:text="${certno}"></h3>
+    <div class="container">
+        <div id="housefilter" class="row form-inline">
+            <input type="hidden" id="lstarea"/>
+            最小<input id="minArea" type="text" class="form-control" style="width: 70px;"
+                     oninput="this.value = this.value.replace(/[^0-9]/g, '');" value=""/>(m<sup>2</sup>)
+            ~ 最大<input id="maxArea" type="text" class="form-control" style="width: 70px;"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '');"/>(m<sup>2</sup>)&nbsp;&nbsp;
+            <select name="lstusage" id="lstusage" class="selectpicker">
+                <option value="-1" selected="selected">不限</option>
+                <option value="1">住宅</option>
+                <option value="101">低层住宅</option>
+                <option value="102">多层住宅</option>
+                <option value="103">小高层住宅</option>
+                <option value="104">高层住宅</option>
+                <option value="105">别墅</option>
+                <option value="2">商业</option>
+                <option value="3">办公</option>
+                <option value="4">车库</option>
+                <option value="5">厂房仓库</option>
+                <option value="6">其它</option>
+                <option value="7">酒店式公寓</option>
+            </select>
+            <button type="button" onclick="filterHouse()" class="btn btn-primary">筛选</button>
+            <button type="button" onclick="analysisHouse()" class="btn btn-primary">分析</button>
+        </div>
+        <div class="row">
+            <table id="houseListTable"
+                   data-search="true"
+                   data-detail-view="true"
+                   data-show-footer="false"
+                   data-pagination="true"
+                   data-show-refresh="false"
+                   data-show-pagination-switch="true"
+                   data-show-export="true"
+                   data-detail-formatter="detailFormatter">
+            </table>
+        </div>
+        <div th:replace="share/loading" />
+    </div>
+</div>
+
+<th:block layout:fragment="readyScript">
+    <script type="text/javascript" th:inline="javascript">
+        $("#li_detail").addClass("active");
+
+        var $houseTable = null;
+        var cond = [[${queryCondition}]];
+        $("#idx").val(cond.idx);
+
+        postData(false);
+        $("#houseDetailReq").css({"color": "#777", "cursor": "not-allowed"});
+
+        $("#li_analysis a").click(function() {
+            analysisHouse();
+        });
+
+        $("#withoutCacheReq").click(function () {
+            postData(true);
+        });
+
+        function postData(withoutCache) {
+            $('#loading').modal('show');
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json'
+                },
+                type: 'POST',
+                dataType: "JSON", //表示返回值类型，不必须
+                data: withoutCache ? $.extend(cond, {"refreshCache" : "true"}): cond,
+                url: '/crawl/housesDataJson'
+            }).done(function (json) {
+                $houseTable = initHouseTable(json.responseContent);
+                $houseTable.renderStart();
+                $("#currentTimes").html(json.currentReqCount);
+                $("#dailyTimes").html(json.limitReqCount);
+                $('#loading').modal('hide');
+            });
+        }
+
+        function analysisHouse() {
+            location.href = '/crawl/getHouseStatistic?idx=' + cond.idx + '&certno=' + cond.certno + '&pjname=' + cond.pjname;
+        }
+
+        function initHouseTable(data) {
+            var $t = $tableUtil.createTable({
+                uniqueId: 'idx',
+                toolbar: '#housefilter',
+                data: data,
+                columns: [
+                    {
+                        title: '幢号',
+                        field: 'buildno',
+                        align: 'center'
+                    }, {
+                        title: '单元号',
+                        field: 'unitno',
+                        align: 'center'
+                    }, {
+                        title: '室号',
+                        field: 'roomno',
+                        align: 'center'
+                    }, {
+                        title: '楼层',
+                        field: 'floor',
+                        align: 'center'
+                    }, {
+                        title: '用途',
+                        field: 'lstusage',
+                        align: 'center'
+                    }, {
+                        title: '建筑面积 (平方米)',
+                        field: 'lstarea',
+                        align: 'center'
+                    }, {
+                        title: '状态',
+                        field: 'status',
+                        align: 'center'
+                    }
+                ],
+                queryParams: function (params) {
+                    params.idx = $("#idx").val();
+                    params.lstusage = $("#lstusage").val();
+                    params.lstarea = $("#lstarea").val();
+                    return params;
+                },
+                responseHandler: function (res) {
+                    $.each(res, function (i, row) {
+                        console.log(i + "-row: " + JSON.stringify(row));
+                        // row.state = $.inArray(row.idx, selections) !== -1;
+                    });
+                    return res;
+                },
+                detailFormatter: function (index, row) {
+                    var html = [];
+                    html.push('<p><a href="http://pub.wxhouse.com/HTBA/House_Detail.pub?idx='+ row.idx+ '" target="_blank">');
+                    html.push(row.pjname + row.buildno +'幢' + row.unitno + '室 详情页面');
+                    html.push('</a></p>');
+                    return html.join('');
+                }
+            }, "#houseListTable");
+
+            $t.on('all.bs.table', function (e, name, args) {
+                console.log(name, args);
+            });
+
+            return $t;
+        }
+
+        function filterHouse() {
+            var origin = $houseTable.getOriginData();
+            var usg = $("#lstusage option:selected").text();
+            var min = $("#minArea").val();
+            var max = $("#maxArea").val();
+            var nmin = /^\s*$/.test(min) ? 0 : Number(min);
+            var nmax = /^\s*$/.test(max) ? 10000 : Number(max);
+            var fdata = origin.filter(function (row) {
+                var area = Number(row.lstarea);
+                return (usg == "不限" ? true : row.lstusage == usg) && nmin < area && area < nmax;
+            });
+            $houseTable.bootstrapTable('load', fdata);
+        }
+
+    </script>
+</th:block>
+</body>
+</html>

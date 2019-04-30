@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.rsun.dao.SystemDao">
+
+    <select id="checkHouseInfoTable" resultType="java.lang.Integer">
+        select count(*)  from sqlite_master where type='table' and name = 'house_info'
+    </select>
+
+    <select id="createHouseInfoTable">
+        <![CDATA[
+        create table house_info (
+            houseIdx TEXT primary key,
+            idx TEXT,
+            name TEXT,
+            buildno TEXT,
+            unitno TEXT,
+            roomno TEXT,
+            floor TEXT,
+            lstusage TEXT,
+            lstarea TEXT,
+            status TEXT
+        )
+        ]]>
+    </select>
+</mapper>

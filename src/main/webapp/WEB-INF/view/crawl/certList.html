@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{share/layout}">
+<head>
+</head>
+<body>
+
+<th:block layout:fragment="additionFilter">
+</th:block>
+
+<div layout:fragment="content">
+    <div th:if="${resp.message=='SUCCESS' && result!=null}">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-2">
+                第<input id="pageInput" type="text" th:value="${queryCondition.page}" style="width:30px"/>页 / <b th:text="${queryCondition.total}"></b>页
+                </div>
+                <div class="row form-inline">
+                    <button class="btn btn-primary btn-md" onclick="$('input.chxCert').attr('checked',true);">全选</button>
+                    <button class="btn btn-primary btn-md" onclick="addSelectedCert()">添加至批量项目分析</button>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        <div class="container">
+            <th:block th:each="cert:${result}" >
+                <div th:utext="${cert}" class="col-md-3"></div>
+            </th:block>
+        </div>
+    </div>
+    <div th:if="${resp.message=='HTTP_ERROR'}">
+        <h2>无法拉取到数据</h2>
+        <h2>请查看<a href="http://pub.wxhouse.com/HTBA/SaleCert_List.pub">http://pub.wxhouse.com/HTBA/SaleCert_List.pub</a>是否能访问</h2>
+    </div>
+    <div th:if="${resp.message=='EXCEED_REQUEST_LIMIT'}">
+        <h2>已达到今日的请求次数上限</h2>
+        <h2>请至<a href="http://pub.wxhouse.com/HTBA/SaleCert_List.pub">http://pub.wxhouse.com/HTBA/SaleCert_List.pub</a>查阅</h2>
+    </div>
+</div>
+
+<th:block layout:fragment="readyScript" >
+<script type="text/javascript" th:inline="javascript">
+    $("#li_overview").addClass("active");
+
+    var cond = [[${queryCondition}]];
+    $("#key").val(cond.key);
+    $("#region").val(cond.region);
+    $("#region").trigger("change");
+    $("#pageInput").on("input", function() {
+        $("#page").val(this.value);
+    });
+    $("#page").val(cond.page);
+    $("#li_detail a,#li_analysis a,#withoutCacheReq,#houseDetailReq").css({"color":"#777","cursor":"not-allowed"});
+
+    $("#currentTimes").html([[${resp.currentReqCount}]]);
+    $("#dailyTimes").html([[${resp.limitReqCount}]]);
+
+    function addSelectedCert() {
+        var postData = [];
+        $("input.chxCert:checked").each(function() {
+            postData.push({
+                idx:$(this).attr("idx"),
+                pjname:$(this).attr("pjname"),
+                certno:$(this).attr("certno")
+            });
+        });
+
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json' // headers必须添加，否则会报415错误
+            },
+            type: 'POST',
+            dataType: "JSON", //表示返回值类型，不必须
+            data:   JSON.stringify(postData),
+            url: '/cache/addSelectedCert'
+        }).done(function(json) {
+            // debugger;
+            if (json.success) {
+                $("#selectedCertNum").html(json.certCount);
+            }
+        });
+    }
+</script>
+</th:block>
+
+</body>
+</html>

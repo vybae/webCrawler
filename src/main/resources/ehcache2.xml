@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eh:config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:eh="http://www.ehcache.org/v3"
+         xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
+         xsi:schemaLocation="
+        http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.6.xsd
+        http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.6.xsd">
+
+
+        <!--EHCache分布式缓存集群环境配置-->
+    <!--rmi手动配置-->
+    <cacheManagerPeerProviderFactory class= "net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+                                     properties="peerDiscovery=manual,rmiUrls=//localhost:40000/user"/>
+
+    <cacheManagerPeerListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
+            properties="hostName=localhost,port=40001, socketTimeoutMillis=120000"/>
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            overflowToDisk="true"
+            diskSpoolBufferSizeMB="30"
+            maxElementsOnDisk="10000000"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="120"
+            memoryStoreEvictionPolicy="LRU">
+        <cacheEventListenerFactory
+                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"/>
+    </defaultCache>
+    <cache name="user"
+           maxElementsInMemory="1000"
+           eternal="false"
+           timeToIdleSeconds="100000"
+           timeToLiveSeconds="100000"
+           overflowToDisk="false">
+        <cacheEventListenerFactory
+                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"/>
+    </cache>
+</eh:config>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{share/layout}">
+<head>
+    <title>项目分析</title>
+</head>
+<body>
+<th:block layout:fragment="additionFilter">
+</th:block>
+
+<div layout:fragment="content">
+    <h1 id="h1header" th:text="${queryCondition.pjname}"></h1>
+    <h4 id="h4header" th:text="${queryCondition.certno}"></h4>
+    <div id="statisticBox" class="row form-inline" th:if="${queryCondition.idx!=''}">
+        <button type="button" onclick="redirectHouseList()" class="btn btn-primary">明细</button>
+    </div>
+    <div class="container">
+        <div class="row">
+            <table id="statisticTable"
+                   data-search="true"
+                   data-detail-view="true"
+                   data-show-footer="false"
+                   data-pagination="true"
+                   data-show-refresh="false"
+                   data-show-pagination-switch="true"
+                   data-show-export="true">
+            </table>
+        </div>
+        <div th:replace="share/loading"/>
+    </div>
+</div>
+
+<th:block layout:fragment="readyScript">
+    <script type="text/javascript" th:inline="javascript">
+        $("#li_analysis").addClass("active");
+
+        var $pageObject = {
+            ajaxReqs: [],
+            ajaxReqFunctionArgs: [],
+            ajaxReqFunctionBody: "return $.when(@args)",
+            table: null,
+            merges: {},
+            tableData: [],
+            condition: [[${queryCondition}]],
+            clear: function () {
+                this.ajaxReqs = [];
+                this.ajaxReqFunctionArgs = [];
+                this.ajaxReqFunctionBody = "return $.when(@args)";
+                this.table = null;
+                this.merges = {};
+                this.tableData = [];
+            }
+        };
+
+        postData(false);
+
+        $("#withoutCacheReq").click(function () {
+            postData(true);
+        });
+        $("#houseDetailReq").css({"color": "#777", "cursor": "not-allowed"});
+
+        function postData(withoutCache) {
+            $('#loading').modal('show');
+            $pageObject.clear();
+
+            if ($pageObject.condition.idx) {
+                $("#idx").val($pageObject.condition.idx);
+
+                $("#li_detail a").click(function () {
+                    redirectHouseList();
+                });
+                $pageObject.ajaxReqs.push(ajaxStatisticRequest(withoutCache ? $.extend($pageObject.condition, {"refreshCache": "true"}) : $pageObject.condition));
+            } else {
+                $("#li_detail a").css({"color": "#777", "cursor": "not-allowed"});
+                var _jsons = JSON.parse($pageObject.condition.analysisJson);
+                $.each(_jsons, function (i, item) {
+                    $pageObject.ajaxReqs.push(ajaxStatisticRequest(withoutCache ? $.extend(item, {"refreshCache": "true"}) : item));
+                });
+                $("#h1header").html(_jsons.map(function (c) {
+                    return c.pjname;
+                }).distinct().join("<br>"));
+                $("#h4header").html(_jsons.map(function (c) {
+                    return c.certno;
+                }).distinct().join("<br>"));
+            }
+
+            var reqLen = $pageObject.ajaxReqs.length;
+            for (var i = 0; i < reqLen; i++) {
+                $pageObject.ajaxReqFunctionArgs.push("$pageObject.ajaxReqs[" + i + "]");
+            }
+            var executeAjaxHandler = new Function($pageObject.ajaxReqFunctionBody.replace(/@args/, $pageObject.ajaxReqFunctionArgs.join(",")));
+            executeAjaxHandler().done(function () {
+                // $pageObject.tableData = arguments.filter(function (item, i) {
+                //     return i < reqLen;
+                // }).flatMap(function(item) { return item; });
+
+                if (reqLen > 1) {
+                    for (var i = 0; i < reqLen; i++) {
+                        $pageObject.tableData = $pageObject.tableData.concat(arguments[i][0].responseContent);
+                    }
+                    $("#currentTimes").html(arguments[0][0].currentReqCount);
+                    $("#dailyTimes").html(arguments[0][0].limitReqCount);
+                } else {
+                    $pageObject.tableData = arguments[0].responseContent;
+                    $("#currentTimes").html(arguments[0].currentReqCount);
+                    $("#dailyTimes").html(arguments[0].limitReqCount);
+                }
+                $pageObject.table = initStatisticTable($pageObject.tableData);
+                $pageObject.table.renderStart();
+
+                Object.keys($pageObject.merges).forEach(function (k) {
+                    $pageObject.table.bootstrapTable('mergeCells', $pageObject.merges[k]);
+                });
+                $('#loading').modal('hide');
+            });
+        }
+
+        function ajaxStatisticRequest(data) {
+            return $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json'
+                },
+                type: 'POST',
+                dataType: "JSON", //表示返回值类型，不必须
+                data: data,
+                url: '/crawl/houseStatisticJson'
+            });
+        }
+
+        function initStatisticTable(data) {
+
+            var $t = $tableUtil.createTable({
+                toolbar: '#statisticBox',
+                data: data,
+                columns: [
+                    {
+                        title: '许可证',
+                        field: 'certno',
+                        align: 'center'
+                    }, {
+                        title: '物业类型',
+                        field: 'lstusage',
+                        align: 'center'
+                    }, {
+                        title: '供应套数',
+                        field: 'supplyCount',
+                        align: 'center'
+                    }, {
+                        title: '已售套数',
+                        field: 'saledCount',
+                        align: 'center'
+                    }, {
+                        title: '供应面积',
+                        field: 'supplyArea',
+                        align: 'center'
+                    }, {
+                        title: '已售面积',
+                        field: 'saledArea',
+                        align: 'center'
+                    }
+                ],
+                onPostBody: function (res) {
+                    var merges = {};
+                    var prevCert = null;
+                    $.each(res, function (i, row) {
+                        console.log(i + "-row: " + JSON.stringify(row));
+                        // row.state = $.inArray(row.idx, selections) !== -1;
+                        if (prevCert == row.certno) {
+                            if (merges.hasOwnProperty(prevCert)) {
+                                merges[prevCert].rowspan++;
+                            } else {
+                                merges[prevCert] = {
+                                    index: i - 1,
+                                    field: 'certno',
+                                    rowspan: 2
+                                }
+                            }
+                        }
+                        prevCert = row.certno;
+                    });
+                    $pageObject.merges = merges;
+                    return false;
+                },
+                detailFormatter: function (index, row) {
+                    var html = [];
+                    html.push('<p><a href="http://pub.wxhouse.com/HTBA/SaleCert_Detail.pub?idx='+ row.idx+ '" target="_blank">');
+                    html.push(row.certno+' 原页面');
+                    html.push('</a></p>');
+                    html.push('<p><a href="http://pub.wxhouse.com/HTBA/DownloadManual.pub?idx='+ row.idx+ '" target="_blank">');
+                    html.push('pdf文件下载</a></p>');
+                    return html.join('');
+                }
+            }, "#statisticTable");
+
+            $t.on('all.bs.table', function (e, name, args) {
+                console.log("stat: " + name, args);
+            });
+
+            return $t;
+        }
+
+        function redirectHouseList() {
+            location.href = '/crawl/getHouseList?idx=' + $pageObject.condition.idx + '&certno=' + $pageObject.condition.certno + '&pjname=' + $pageObject.condition.pjname;
+        }
+
+    </script>
+</th:block>
+</body>
+</html>

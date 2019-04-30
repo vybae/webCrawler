@@ -1,0 +1,105 @@
+package com.rsun.web;
+
+import com.rsun.dto.HouseInfo;
+import com.rsun.dto.QueryCondition;
+import com.rsun.dto.StatisticResult;
+import com.rsun.dto.http.HttpResponseWrapper;
+import com.rsun.provider.aggregator.jvm.JvmAggregator;
+import com.rsun.service.CrawlService;
+import com.rsun.util.html.HtmlUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Controller
+@RequestMapping("/crawl")
+public class CrawlController {
+
+    @Value("${cacheExpire}")
+    private int cacheExpire;
+
+    @Autowired
+    private JvmAggregator jvmAggregator;
+
+    @Autowired
+    private CrawlService crawlService;
+
+    @Autowired
+    private HtmlUtil htmlUtil;
+
+    @RequestMapping("/getProjectList")
+    public String getProjectList(QueryCondition queryCondition, Model model) {
+        HttpResponseWrapper<List<String>> rs = crawlService.getProjectList(queryCondition);
+        model.addAttribute("result", rs.getResponseContent());
+        model.addAttribute("resp", rs);
+        queryCondition.setPage(String.valueOf(rs.getPage()));
+        queryCondition.setTotal(String.valueOf(rs.getTotal()));
+        return "/crawl/certList";
+    }
+
+    @RequestMapping("/getHouseList")
+    public String getHouseList(QueryCondition condition, Model model) {
+        model.addAttribute("certno", condition.getCertno());
+        model.addAttribute("pjname", condition.getPjname());
+        return "/crawl/houseList";
+    }
+
+    @ResponseBody
+    @RequestMapping("/housesDataJson")
+    public HttpResponseWrapper<List<HouseInfo>> housesDataJson(QueryCondition queryCondition) {
+        HttpResponseWrapper<List<HouseInfo>> result;
+        if ("true".equals(queryCondition.getRefreshCache()) || !jvmAggregator.checkExist(queryCondition)) {
+            result = crawlService.getHouseList(queryCondition);
+            String[][] arr = result.getResponseContent().stream()
+                    .map(HouseInfo::toStringArray)
+                    .collect(Collectors.toList()).toArray(new String[0][]);
+            if (arr.length > 0) {
+                jvmAggregator.pushData(queryCondition, arr, cacheExpire);
+            }
+        } else {
+            String[][] cacheArr = jvmAggregator.getData(queryCondition);
+            result = new HttpResponseWrapper<>();
+            result.setResponseContent(Arrays.stream(cacheArr != null ? cacheArr : new String[0][]).map(HouseInfo::new).collect(Collectors.toList()));
+
+            String[][] stat = jvmAggregator.getData(HtmlUtil.getCurrentCrawlTimesKey());
+            result.setCurrentReqCount(stat != null ? Integer.parseInt(stat[0][0]) : 0);
+            result.setLimitReqCount(htmlUtil.getDailyCrawlTimesLimit());
+        }
+        return result;
+    }
+
+    @RequestMapping("/getHouseStatistic")
+    public String getHouseStatistic(QueryCondition queryCondition, Model model) {
+        model.addAttribute("queryCondition", queryCondition);
+        return "/crawl/statistic";
+    }
+
+    @ResponseBody
+    @RequestMapping("/houseStatisticJson")
+    public HttpResponseWrapper<List<StatisticResult>> houseStatisticJson(QueryCondition queryCondition, Model model) {
+        HttpResponseWrapper<List<HouseInfo>> houses = housesDataJson(queryCondition);
+        final String certno = queryCondition.getCertno();
+
+        Map<String, String[]> statMap = houses.getResponseContent().stream().collect(Collectors.groupingBy(HouseInfo::getLstusage,
+                Collectors.collectingAndThen(Collectors.toList(), list -> {
+                    List<HouseInfo> saled = list.stream().filter(h -> "已售".equals(h.getStatus())).collect(Collectors.toList());
+                    String idx = list.get(0).getCertidx();
+                    long supplyCount = list.size();
+                    long saleCount = saled.size();
+                    double supplyArea = list.stream().mapToDouble(h -> Double.parseDouble(h.getLstarea())).sum();
+                    double saleArea = saled.stream().mapToDouble(h -> Double.parseDouble(h.getLstarea())).sum();
+                    return new String[]{idx, String.valueOf(supplyCount), String.valueOf(saleCount), String.valueOf(supplyArea), String.valueOf(saleArea)};
+                })));
+        HttpResponseWrapper<List<StatisticResult>> resp = houses.copyWithoutContent();
+        resp.setResponseContent(StatisticResult.convertMap(certno, statMap));
+        return resp;
+    }
+}

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<!-- 模态框（Modal Start） -->
+<div th:fragment="tablePluginHtml(title)" class="modal fade" id="myModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <!-- /.modal-dialog -->
+    <div class="modal-dialog" style="width: 750px;">
+        <!-- /.modal-content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <th:block th:text="${title}"></th:block>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div id="toolbar">
+                        <button id="btnRemoveAll" class="btn btn-danger">
+                            <i class="glyphicon glyphicon-remove"></i>清空
+                        </button>
+                    </div>
+                    <table id="defaultModalTable"
+                           data-search="true"
+                           data-detail-view="false"
+                           data-show-footer="false"
+                           data-pagination="true"
+                           data-show-refresh="true"
+                           data-show-pagination-switch="true"
+                           data-show-export="true">
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default"
+                        data-dismiss="modal">关闭
+                </button>
+                <button id="btnDefaultAnalysis" type="button" class="btn btn-primary">
+                    分析
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- Modal End -->
+
+<th:block th:fragment="tablePluginScript">
+    <!-- 需要 jQuery -->
+    <script src="/static/plugin/tableExport.jquery.plugin-1.10.3/libs/FileSaver/FileSaver.min.js"></script>
+    <script src="/static/plugin/tableExport.jquery.plugin-1.10.3/libs/js-xlsx/xlsx.core.min.js"></script>
+    <script src="/static/plugin/tableExport.jquery.plugin-1.10.3/tableExport.min.js"></script>
+    <script src="/static/plugin/bootstrap-table-1.14.2/dist/bootstrap-table.min.js"></script>
+    <script src="/static/plugin/bootstrap-table-1.14.2/dist/extensions/export/bootstrap-table-export.min.js"></script>
+
+    <script type="text/javascript">
+        var TablePlugin = function () {
+            var plugin = {};
+
+            plugin.tables = {};
+            plugin.initOption = {
+                locale: 'zh-CN',
+                exportDataType: 'all',
+                exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel', 'xlsx'],
+                detailFormatter: function (index, row) {
+                    var html = [];
+                    $.each(row, function (key, value) {
+                        html.push('<p><b>' + key + ':</b>' + value + '</p>')
+                    });
+                    return html.join('');
+                }
+            };
+            plugin.createTable = function (option, table) {
+                var $t = null != table ? $(table) : $("#defaultModalTable");
+                $t.option = $.extend({}, plugin.initOption, option);
+
+                $t.getData = function getData() {
+                    return $t.bootstrapTable('getData');
+                };
+                $t.getOriginData = function getData() {
+                    return $t.originData;
+                };
+                $t.renderStart = function () {
+                    $t.bootstrapTable('destroy')
+                        .bootstrapTable($t.option);
+                    $t.originData = $t.bootstrapTable('getData');
+                };
+
+                plugin.tables[$t.selector] = $t;
+                return $t;
+            };
+            plugin.getTable = function (name) {
+                plugin.tables[name];
+            };
+
+            return plugin;
+        };
+
+        var $tableUtil = new TablePlugin();
+    </script>
+</th:block>
+
+</html>
