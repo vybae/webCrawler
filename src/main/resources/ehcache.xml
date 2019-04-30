@@ -3,8 +3,8 @@
            xmlns:eh="http://www.ehcache.org/v3"
            xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
            xsi:schemaLocation="
-        http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.6.xsd
-        http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.6.xsd">
+        http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.2.xsd
+        http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.2.xsd">
     <eh:persistence directory="/root/webPath"/>
     <eh:cache alias="jvmAggregator">
         <eh:key-type>java.lang.String</eh:key-type>

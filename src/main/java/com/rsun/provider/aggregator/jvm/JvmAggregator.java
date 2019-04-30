@@ -3,7 +3,6 @@ package com.rsun.provider.aggregator.jvm;
 import com.rsun.provider.aggregator.InnerAggregator;
 import com.rsun.provider.aggregator.struct.AggConfig;
 import com.rsun.provider.aggregator.struct.AggregateResult;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -14,6 +13,7 @@ import java.util.stream.Collectors;
  * Created by yfyuan on 2017/1/18.
  */
 @Service
+//@Scope("prototype")
 public class JvmAggregator extends InnerAggregator {
 
     @Override
