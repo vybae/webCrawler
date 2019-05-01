@@ -11,8 +11,8 @@
             <ehcache:ttl unit="hours">24</ehcache:ttl>
         </ehcache:expiry>
         <ehcache:resources>
-            <ehcache:heap unit="MB">300</ehcache:heap>
-            <ehcache:offheap unit="MB">500</ehcache:offheap>
+            <ehcache:heap unit="MB">200</ehcache:heap>
+            <ehcache:offheap unit="MB">300</ehcache:offheap>
         </ehcache:resources>
     </ehcache:cache>
 </ehcache:config>
