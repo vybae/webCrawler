@@ -1,13 +1,13 @@
 package com.rsun.cache;
 
 import org.ehcache.Cache;
+import org.ehcache.CacheManager;
 import org.ehcache.config.Configuration;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.xml.XmlConfiguration;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -16,15 +16,14 @@ import java.util.Date;
  */
 public class EhCacheManager<T> implements CacheManagerApi<T>, InitializingBean, DisposableBean {
 
-    private static org.ehcache.CacheManager myCacheManager;
+    private static CacheManager myCacheManager;
 
     private Cache<String, CacheObject> cache;
 
     private String cacheAlias;
 
     static {
-        final URL myUrl = EhCacheManager.class.getResource("/ehcache.xml");
-        Configuration xmlConfig = new XmlConfiguration(myUrl);
+        Configuration xmlConfig = new XmlConfiguration(EhCacheManager.class.getResource("/ehcache.xml"));
         myCacheManager = CacheManagerBuilder.newCacheManager(xmlConfig);
         myCacheManager.init();
     }

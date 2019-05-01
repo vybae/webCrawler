@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<eh:config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:eh="http://www.ehcache.org/v3"
-           xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
-           xsi:schemaLocation="
-        http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.2.xsd
-        http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.2.xsd">
-    <eh:persistence directory="/root/webPath"/>
-    <eh:cache alias="jvmAggregator">
-        <eh:key-type>java.lang.String</eh:key-type>
-        <eh:value-type>com.rsun.cache.CacheObject</eh:value-type>
-        <eh:expiry>
-            <eh:ttl unit="hours">24</eh:ttl>
-        </eh:expiry>
-        <eh:resources>
-            <eh:heap unit="MB">200</eh:heap>
-            <eh:disk unit="GB">10</eh:disk>
-        </eh:resources>
+<ehcache:config
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:ehcache='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.7.xsd">
 
-    </eh:cache>
-</eh:config>
+    <ehcache:cache alias="jvmCache">
+        <ehcache:key-type>java.lang.String</ehcache:key-type>
+        <ehcache:value-type>com.rsun.cache.CacheObject</ehcache:value-type>
+        <ehcache:expiry>
+            <ehcache:ttl unit="hours">24</ehcache:ttl>
+        </ehcache:expiry>
+        <ehcache:resources>
+            <ehcache:heap unit="MB">500</ehcache:heap>
+            <ehcache:offheap unit="MB">1000</ehcache:offheap>
+        </ehcache:resources>
+    </ehcache:cache>
+</ehcache:config>

@@ -6,7 +6,7 @@
 
 
     <bean id="rawDataCache" class="com.rsun.cache.EhCacheManager">
-        <property name="cacheAlias" value="jvmAggregator" />
+        <property name="cacheAlias" value="jvmCache" />
     </bean>
 
 </beans>

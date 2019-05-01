@@ -47,10 +47,12 @@ public class CrawlServiceImpl implements CrawlService {
         JXDocument jxd = tuple.getFirst();
         if (jxd != null) {
             JXNode pageSel = jxd.selNOne("//select[@id='plpageno']");
-            int total = pageSel.asElement().children().size();
-            Element cur = pageSel.asElement().selectFirst("option[selected]");
-            resp.setPage(cur == null ? 1 : Integer.parseInt(cur.html()));
-            resp.setTotal(total);
+            if (pageSel != null) {
+                int total = pageSel.asElement().children().size();
+                Element cur = pageSel.asElement().selectFirst("option[selected]");
+                resp.setPage(cur == null ? 1 : Integer.parseInt(cur.html()));
+                resp.setTotal(total);
+            }
             String path = "//table[@id='htba_table_data']//table[@id='htba_data_box']";
             List<JXNode> list = jxd.selN(path);
             list.forEach(n -> {
