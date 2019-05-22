@@ -52,6 +52,8 @@
                 <a class="navbar-brand" href="/">RSUN HOUSE ANALYSIS</a>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <a class="navbar-limit">今日已请求&nbsp;<b id="currentTimes"></b> / <span id="dailyTimes"></span></a>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <a class="navbar-limit">每分钟请求量&nbsp;<b id="perMinFreq">0</b> / <span>30</span></a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <form id="searchForm" method="post" action="/crawl/getProjectList" >
@@ -135,6 +137,15 @@
             toolbar: '#toolbar',
             columns: [
                 {
+                    title: '已缓存',
+                    field: 'cached',
+                    align: 'center',
+                    valign: 'middle',
+                    formatter: function(value) {
+                        return value ? '是' : '';
+                    }
+                },
+                {
                     title: '许可证号',
                     field: 'certno',
                     align: 'center',
@@ -183,43 +194,105 @@
                 });
                 $("#selectedCertNum").html(res.length);
                 return res;
+            },
+            rowStyle: function(row, index) {
+                if (row.cached) {
+                    return {
+                        css: {
+                            // color: 'blue',
+                            background: '#70bbff'
+                        }
+                    }
+                }
+                return {};
             }
         });
-        $defaultTable.on('all.bs.table', function (e, name, args) {
-            console.log("layout: " + name, args);
-        });
-        $defaultTable.renderStart();
+        var websocketId = null;
 
-        $("#btnRemoveAll").click(function () {
-            var ids = $.map($defaultTable.getData(), function (row) {
-                return row.idx;
+        !function() {
+            $defaultTable.on('all.bs.table', function (e, name, args) {
+                console.log("layout: " + name, args);
             });
-            $.ajax({
-                type: 'POST',
-                dataType: "JSON", //表示返回值类型，不必须
-                data: {},
-                url: '/cache/removeAllCerts'
-            }).done(function(e) {
-                if (e.success) {
-                    $defaultTable.bootstrapTable('remove', {
-                        field: 'idx',
-                        values: ids
-                    });
-                    $("#selectedCertNum").html(0);
+            $defaultTable.renderStart();
+
+            $("#btnRemoveAll").click(function () {
+                var ids = $.map($defaultTable.getData(), function (row) {
+                    return row.idx;
+                });
+                $.ajax({
+                    type: 'POST',
+                    dataType: "JSON", //表示返回值类型，不必须
+                    data: {},
+                    url: '/cache/removeAllCerts'
+                }).done(function (e) {
+                    if (e.success) {
+                        $defaultTable.bootstrapTable('remove', {
+                            field: 'idx',
+                            values: ids
+                        });
+                        $("#selectedCertNum").html(0);
+                    }
+                });
+            });
+
+
+            $("#btnDefaultAnalysis").click(function () {
+                var requestJson = $defaultTable.getData();
+                location.href = '/crawl/getHouseStatistic?analysisJson=' + encodeURIComponent(JSON.stringify(requestJson));
+            });
+
+            var websocket = null;
+            var host = document.location.host;
+            // console.log(username)
+            // 判断当前浏览器是否支持WebSocket
+            if ('WebSocket' in window) {
+                console.log("浏览器支持Websocket")
+                websocket = new WebSocket('ws://'+host+'/webSocket');
+            } else {
+                console.log('当前浏览器 Not support websocket')
+            }
+
+            //连接发生错误的回调方法
+            websocket.onerror = function() {
+                console.log("WebSocket连接发生错误")
+            };
+
+            //连接成功建立的回调方法
+            websocket.onopen = function(e) {
+                console.log(e.data)
+                console.log("WebSocket连接成功")
+            }
+
+            //接收到消息的回调方法
+            websocket.onmessage = function(event) {
+                console.log("最近一分钟的请求数量："+event.data);
+                if (/initId:\w+/.test(event.data)) {
+                    websocketId = event.data.replace(/initId:/,'');
+                } else {
+                    setMessageInnerHTML(event.data);
                 }
-            });
-        });
+            }
+
+            //连接关闭的回调方法
+            websocket.onclose = function() {
+                websocket.close();
+            }
+
+            //监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+            window.onbeforeunload = function() {
+                websocket.close();
+            }
+
+            //将消息显示在网页上
+            function setMessageInnerHTML(innerHTML) {
+                document.getElementById('perMinFreq').innerHTML = innerHTML;
+            }
+        }();
 
         function refreshData() {
             $("#selectedCertNum").html($defaultTable.getData().length);
             $defaultTable.bootstrapTable('refresh');
         }
-
-        $("#btnDefaultAnalysis").click(function() {
-            var requestJson = $defaultTable.getData();
-            location.href = '/crawl/getHouseStatistic?analysisJson='+ encodeURIComponent(JSON.stringify(requestJson));
-        });
-
     </script>
     <th:block layout:fragment="readyScript">
     </th:block>

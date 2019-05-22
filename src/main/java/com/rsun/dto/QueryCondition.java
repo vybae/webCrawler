@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class QueryCondition {
     private String idx = "";
-    ;
     private String certno = "";
     private String pjname = "";
     private String region = "";

@@ -1,6 +1,8 @@
 package com.rsun.config;
 
+import com.rsun.cache.CacheQueue;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.*;
@@ -24,10 +26,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Configuration
 @EnableWebMvc
@@ -43,6 +42,14 @@ public class MvcWebConfig extends WebMvcConfigurerAdapter implements Application
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+    }
+
+    @Value("${reqBandCapacity}")
+    private int reqBandCapacity;
+
+    @Bean("reqBandLimit")
+    public CacheQueue<UUID> reqBandLimit() {
+        return new CacheQueue(reqBandCapacity, 60000);
     }
 
     @Bean

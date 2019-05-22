@@ -28,7 +28,7 @@ public abstract class InnerAggregator implements Aggregatable {
     public abstract String[][] getData(Object objectKey);
 
     //获取KEY值
-    protected String getCacheKey(Object object) {
+    protected String getStoredCacheKey(Object object) {
 //        System.out.println("-------------"+JSONObject.toJSON(dataSource).toString() + JSONObject.toJSON(query).toString()+"-----------");
         return Hashing.md5().newHasher().putString(
                 JsonParseUtil.convertString(object),
@@ -36,13 +36,12 @@ public abstract class InnerAggregator implements Aggregatable {
     }
 
     public boolean checkExist(Object objectKey) {
-        String key = getCacheKey(objectKey);
-        System.out.println("checkExist Key: " + key + ", " + new Date());
+        String key = getStoredCacheKey(objectKey);
         return rawDataCache.get(key) != null;
     }
 
     public void cleanExist(Object objectKey) {
-        rawDataCache.remove(getCacheKey(objectKey));
+        rawDataCache.remove(getStoredCacheKey(objectKey));
     }
 
     public void cleanAll() {

@@ -79,10 +79,10 @@
                     $pageObject.ajaxReqs.push(ajaxStatisticRequest(withoutCache ? $.extend(item, {"refreshCache": "true"}) : item));
                 });
                 $("#h1header").html(_jsons.map(function (c) {
-                    return c.pjname;
+                    return c.pjname.trim();
                 }).distinct().join("<br>"));
                 $("#h4header").html(_jsons.map(function (c) {
-                    return c.certno;
+                    return c.certno.trim();
                 }).distinct().join("<br>"));
             }
 

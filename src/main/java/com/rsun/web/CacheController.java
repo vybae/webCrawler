@@ -34,7 +34,11 @@ public class CacheController {
         String[][] arr = jvmAggregator.getData(CACHE_CERT_KEY);
         List<ProjectInfo> list = new ArrayList<>();
         if (arr != null) {
-            list.addAll(Arrays.stream(arr).map(ProjectInfo::new).collect(Collectors.toList()));
+            list.addAll(Arrays.stream(arr).map(s -> {
+                ProjectInfo p = new ProjectInfo(s);
+                p.setCached(jvmAggregator.checkExist(p.getIdx()));
+                return p;
+            }).collect(Collectors.toList()));
         }
         return list;
     }

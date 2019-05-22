@@ -126,8 +126,10 @@ public class CrawlServiceImpl implements CrawlService {
                             Tuple3<JXDocument, AnalysisResponseType, Integer> t = htmlUtil.getHtmlDocument(pageUrl + "&page=" + p);
                             resp.setCurrentReqCount(t.getThird());
                             resp.setStatusWhenSuccess(t.getSecond());
-                            JXDocument jd = t.getFirst();
-                            list.add(convertDoc.apply(jd));
+                            if (t.getSecond().equals(AnalysisResponseType.SUCCESS)) {
+                                JXDocument jd = t.getFirst();
+                                list.add(convertDoc.apply(jd));
+                            }
                             latch.countDown();
                             System.out.println("Remains Count: " + latch.getCount());
                         });

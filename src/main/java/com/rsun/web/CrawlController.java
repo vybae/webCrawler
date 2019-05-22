@@ -3,6 +3,7 @@ package com.rsun.web;
 import com.rsun.dto.HouseInfo;
 import com.rsun.dto.QueryCondition;
 import com.rsun.dto.StatisticResult;
+import com.rsun.dto.http.AnalysisResponseType;
 import com.rsun.dto.http.HttpResponseWrapper;
 import com.rsun.provider.aggregator.jvm.JvmAggregator;
 import com.rsun.service.CrawlService;
@@ -56,22 +57,27 @@ public class CrawlController {
     @RequestMapping("/housesDataJson")
     public HttpResponseWrapper<List<HouseInfo>> housesDataJson(QueryCondition queryCondition) {
         HttpResponseWrapper<List<HouseInfo>> result;
-        if ("true".equals(queryCondition.getRefreshCache()) || !jvmAggregator.checkExist(queryCondition)) {
+        String cacheKey = queryCondition.getIdx();
+        if ("true".equals(queryCondition.getRefreshCache()) || !jvmAggregator.checkExist(cacheKey)) {
             result = crawlService.getHouseList(queryCondition);
-            String[][] arr = result.getResponseContent().stream()
-                    .map(HouseInfo::toStringArray)
-                    .collect(Collectors.toList()).toArray(new String[0][]);
-            if (arr.length > 0) {
-                jvmAggregator.pushData(queryCondition, arr, cacheExpire);
+            if (result.getStatus().equals(AnalysisResponseType.SUCCESS) &&
+                    result.getResponseContent().size() > 0) {
+                String[][] arr = result.getResponseContent().stream()
+                        .map(HouseInfo::toStringArray)
+                        .collect(Collectors.toList()).toArray(new String[0][]);
+                if (arr.length > 0) {
+                    jvmAggregator.pushData(cacheKey, arr, cacheExpire);
+                }
             }
         } else {
-            String[][] cacheArr = jvmAggregator.getData(queryCondition);
+            String[][] cacheArr = jvmAggregator.getData(cacheKey);
             result = new HttpResponseWrapper<>();
             result.setResponseContent(Arrays.stream(cacheArr != null ? cacheArr : new String[0][]).map(HouseInfo::new).collect(Collectors.toList()));
 
-            String[][] stat = jvmAggregator.getData(HtmlUtil.getCurrentCrawlTimesKey());
+            String[][] stat = jvmAggregator.getData(HtmlUtil.getDailyCrawlTimesKey());
             result.setCurrentReqCount(stat != null ? Integer.parseInt(stat[0][0]) : 0);
             result.setLimitReqCount(htmlUtil.getDailyCrawlTimesLimit());
+            result.setStatus(AnalysisResponseType.SUCCESS);
         }
         return result;
     }

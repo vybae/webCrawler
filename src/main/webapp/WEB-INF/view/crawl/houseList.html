@@ -85,6 +85,8 @@
                 data: withoutCache ? $.extend(cond, {"refreshCache" : "true"}): cond,
                 url: '/crawl/housesDataJson'
             }).done(function (json) {
+                console.log(111);
+                console.log(json);
                 $houseTable = initHouseTable(json.responseContent);
                 $houseTable.renderStart();
                 $("#currentTimes").html(json.currentReqCount);

@@ -10,10 +10,6 @@
     <context:property-placeholder location="classpath:*.properties"/>
     <context:component-scan base-package="com.rsun.*"/>
 
-    <bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-        <property name="applicationContextSchedulerContextKey" value="applicationContext"/>
-    </bean>
-
     <bean id="h2DataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close" >
         <property name="driverClassName" value="org.h2.Driver" />
         <property name="url" value="${aggregator.h2.url}" />
@@ -31,6 +27,34 @@
     <!--RestTemplate -->
     <bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
         <constructor-arg ref="httpClientFactory" />
+    </bean>
+
+    <bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="applicationContextSchedulerContextKey" value="applicationContext"/>
+        <property name="triggers">
+            <list>
+                <ref bean="sendReqBandTrigger"></ref>
+            </list>
+        </property>
+    </bean>
+    <bean id="sendReqBandJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 执行的类 -->
+        <property name="targetObject">
+            <ref bean="webSocket" />
+        </property>
+        <!-- 类中的方法 -->
+        <property name="targetMethod">
+            <value>sendReqBand</value>
+        </property>
+    </bean>
+    <bean id="sendReqBandTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="sendReqBandJob" />
+        </property>
+        <!-- 每一秒钟执行一次 -->
+        <property name="cronExpression">
+            <value>0/1 * * * * ?</value>
+        </property>
     </bean>
 
     <import resource="spring-mybatis.xml" />

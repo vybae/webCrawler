@@ -4,6 +4,7 @@ public class ProjectInfo {
     private String idx;
     private String pjname;
     private String certno;
+    private boolean cached;
 
     public String getIdx() {
         return idx;
@@ -31,6 +32,14 @@ public class ProjectInfo {
 
     public String[] toStringArray() {
         return new String[]{idx, certno, pjname};
+    }
+
+    public boolean isCached() {
+        return cached;
+    }
+
+    public void setCached(boolean cached) {
+        this.cached = cached;
     }
 
     public ProjectInfo() {

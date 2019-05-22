@@ -1,5 +1,6 @@
 package com.rsun.provider.aggregator.jvm;
 
+import com.rsun.cache.CacheQueue;
 import com.rsun.provider.aggregator.InnerAggregator;
 import com.rsun.provider.aggregator.struct.AggConfig;
 import com.rsun.provider.aggregator.struct.AggregateResult;
@@ -18,15 +19,13 @@ public class JvmAggregator extends InnerAggregator {
 
     @Override
     public String[][] getData(Object objectKey) {
-        String key = getCacheKey(objectKey);
-        System.out.println("getData Key:    " + key + ", " + new Date());
+        String key = getStoredCacheKey(objectKey);
         return rawDataCache.get(key);
     }
 
     @Override
     public void pushData(Object objectKey, String[][] data, long minutes) {
-        String key = getCacheKey(objectKey);
-        System.out.println("pushData Key:   " + key + ", " + new Date());
+        String key = getStoredCacheKey(objectKey);
         rawDataCache.put(key, data, minutes * 60 * 1000);
     }
 
@@ -47,15 +46,30 @@ public class JvmAggregator extends InnerAggregator {
         pushData(objectKey, newData, minutes);
     }
 
-    public static void main(String[] args) {
-        List<String[][]> list = new ArrayList<>();
-        list.add(new String[][]{new String[]{"1", "a"}});
-        list.add(new String[][]{new String[]{"2", "b"}});
-        list.add(new String[][]{new String[]{"2", "b"}});
-        list.stream()
-                .flatMap(s -> Arrays.stream(s))
-                .flatMap(s -> Arrays.stream(s))
-                .distinct().forEach(System.out::println);
+    public static void main(String[] args) throws InterruptedException {
+//        List<String[][]> list = new ArrayList<>();
+//        list.add(new String[][]{new String[]{"1", "a"}});
+//        list.add(new String[][]{new String[]{"2", "b"}});
+//        list.add(new String[][]{new String[]{"2", "b"}});
+//        list.stream()
+//                .flatMap(s -> Arrays.stream(s))
+//                .flatMap(s -> Arrays.stream(s))
+//                .distinct().forEach(System.out::println);
+//        System.out.println(0x2345 >> 6 > 0x0045);
+
+        CacheQueue<Integer> q = new CacheQueue<>(3, 1000);
+
+        int i = 0;
+        q.put(i++);
+        Thread.sleep(1000);
+        q.put(i++);
+        Thread.sleep(1000);
+        q.put(i++);
+
+        while(true) {
+            System.out.println(System.currentTimeMillis()+": " + q);
+            q.put(i++);
+        }
     }
 
     @Override

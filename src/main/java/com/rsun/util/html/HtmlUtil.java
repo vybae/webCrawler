@@ -1,5 +1,6 @@
 package com.rsun.util.html;
 
+import com.rsun.cache.CacheQueue;
 import com.rsun.dto.Tuple3;
 import com.rsun.dto.http.AnalysisResponseType;
 import com.rsun.provider.aggregator.jvm.JvmAggregator;
@@ -7,12 +8,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.seimicrawler.xpath.JXDocument;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
@@ -56,9 +59,14 @@ public class HtmlUtil {
     private static SimpleDateFormat sdf = new SimpleDateFormat("yy/MM/dd");
 
     private final Lock reqLock = new ReentrantLock();
+    @Autowired
+    @Qualifier("reqBandLimit")
+    private CacheQueue<UUID> reqBandLimit;
 
     public Tuple3<JXDocument, AnalysisResponseType, Integer> getHtmlDocument(String url) {
-        final String key = getCurrentCrawlTimesKey();
+        final String key = getDailyCrawlTimesKey();
+        JXDocument document = null;
+        AnalysisResponseType art = AnalysisResponseType.HTTP_ERROR;
         String[][] v;
         int count = 0;
         reqLock.lock();
@@ -74,17 +82,22 @@ public class HtmlUtil {
             }
             count++;
             v[0][0] = String.valueOf(count);
-            System.out.println("Consume Times: " + v[0][0] + ", " + new Date());
             jvmAggregator.pushData(key, v, cacheExpire);
         } finally {
             reqLock.unlock();
         }
         try {
-            return new Tuple3(JXDocument.create(Jsoup.connect(url).timeout(JSOUP_TIMEOUT).get()), AnalysisResponseType.SUCCESS, count);
+            UUID uuid = UUID.randomUUID();
+            // 如果达到峰值会线程等待
+            reqBandLimit.put(uuid);
+            document = JXDocument.create(Jsoup.connect(url).timeout(JSOUP_TIMEOUT).get());
+            art = AnalysisResponseType.SUCCESS;
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        return new Tuple3(null, AnalysisResponseType.HTTP_ERROR, count);
+        return new Tuple3(document, art, count);
     }
 
     public String readFile(String filePath) {
@@ -113,7 +126,7 @@ public class HtmlUtil {
         return s.toString();
     }
 
-    public static String getCurrentCrawlTimesKey() {
+    public static String getDailyCrawlTimesKey() {
         return "CURRENT_CRAWL_TIMES" + sdf.format(new Date());
     }
 
