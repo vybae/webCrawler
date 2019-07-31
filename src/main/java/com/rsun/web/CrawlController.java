@@ -43,14 +43,14 @@ public class CrawlController {
         model.addAttribute("resp", rs);
         queryCondition.setPage(String.valueOf(rs.getPage()));
         queryCondition.setTotal(String.valueOf(rs.getTotal()));
-        return "/crawl/certList";
+        return "crawl/certList";
     }
 
     @RequestMapping("/getHouseList")
     public String getHouseList(QueryCondition condition, Model model) {
         model.addAttribute("certno", condition.getCertno());
         model.addAttribute("pjname", condition.getPjname());
-        return "/crawl/houseList";
+        return "crawl/houseList";
     }
 
     @ResponseBody
@@ -85,7 +85,7 @@ public class CrawlController {
     @RequestMapping("/getHouseStatistic")
     public String getHouseStatistic(QueryCondition queryCondition, Model model) {
         model.addAttribute("queryCondition", queryCondition);
-        return "/crawl/statistic";
+        return "crawl/statistic";
     }
 
     @ResponseBody

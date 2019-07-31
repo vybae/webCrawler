@@ -37,7 +37,7 @@ public class CrawlServiceImpl implements CrawlService {
 
         List<String> projects = new ArrayList<>();
         String url = crawlTargetUrl.getCertListUrl();
-        url = condition.attachToUrl(url, true);
+        url = condition.attachToUrl(url);
 
 //        JXDocument jxd = JXDocument.create(HtmlUtil.readFile("D:\\Projects\\webCrawler\\src\\main\\webapp\\static\\cacheDownload.html"));
         Tuple3<JXDocument, AnalysisResponseType, Integer> tuple = htmlUtil.getHtmlDocument(url);
@@ -59,7 +59,7 @@ public class CrawlServiceImpl implements CrawlService {
                 Element ele = n.asElement();
                 String certno = ele.selectFirst("td.certno span").text();
                 String html = ele.outerHtml()
-                        .replaceFirst("<a href=\"SaleCert_Detail\\.pub\\?idx=([\\-\\w]+)\" target=\"_blank\">([^<]+)</a>",
+                        .replaceFirst("<a href=\"detail\\?idx=([\\-\\w]+)\" target=\"_blank\">([^<]+)</a>",
                                 "<input class=\"chxCert\" idx=\"$1\" pjname=\"$2\" " +
                                         "certno=\"" + certno + "\" type=\"checkbox\"/>" +
                                         "<a href=\"/crawl/getHouseList?idx=$1&certno=" + certno +
@@ -92,7 +92,7 @@ public class CrawlServiceImpl implements CrawlService {
             List<HouseInfo> result = new ArrayList<>();
             elements.next().forEach(e -> {
                 HouseInfo h = new HouseInfo();
-                h.setIdx(e.child(7).child(0).attr("href").replaceFirst("House_Detail\\.pub\\?idx=", ""));
+                h.setIdx(e.child(7).child(0).attr("href").replaceFirst("detail\\?idx=", ""));
                 h.setCertidx(certidx);
                 h.setCertno(certno);
                 h.setPjname(pjname);
@@ -131,7 +131,7 @@ public class CrawlServiceImpl implements CrawlService {
                                 list.add(convertDoc.apply(jd));
                             }
                             latch.countDown();
-                            System.out.println("Remains Count: " + latch.getCount());
+//                            System.out.println("Remains Count: " + latch.getCount());
                         });
                     }
                     latch.await();

@@ -7,6 +7,9 @@ import com.rsun.provider.aggregator.struct.AggregateResult;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 
@@ -57,19 +60,26 @@ public class JvmAggregator extends InnerAggregator {
 //                .distinct().forEach(System.out::println);
 //        System.out.println(0x2345 >> 6 > 0x0045);
 
-        CacheQueue<Integer> q = new CacheQueue<>(3, 1000);
+        ReentrantLock lock = new ReentrantLock();
+        Condition cond = lock.newCondition();
+        java.util.concurrent.atomic.AtomicInteger i = new AtomicInteger();
+        final Thread t1 = new Thread(() -> {
+            while(i.get() == 0) {
+                System.out.println(11);
+            }
+        });
+        t1.start();
 
-        int i = 0;
-        q.put(i++);
-        Thread.sleep(1000);
-        q.put(i++);
-        Thread.sleep(1000);
-        q.put(i++);
-
-        while(true) {
-            System.out.println(System.currentTimeMillis()+": " + q);
-            q.put(i++);
-        }
+        final  Thread t2 = new Thread(() -> {
+            i.getAndIncrement();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println(t1.getState());
+        });
+        t2.start();
     }
 
     @Override

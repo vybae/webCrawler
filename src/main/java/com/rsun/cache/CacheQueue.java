@@ -554,7 +554,15 @@ public class CacheQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>,
         last = head = new Node<E>(null);
         this.cacheTimeout = timeout;
         this.instance = this;
-        this.clearThread.start();
+    }
+
+    public void cleanExpiredCache() {
+        long now = System.currentTimeMillis();
+        for (Node<E> p = head.next; p != null && now - p.time >= cacheTimeout; p = p.next) {
+            synchronized (instance) {
+                poll();
+            }
+        }
     }
 
     private class Itr implements Iterator<E> {
