@@ -186,10 +186,12 @@
                 },
                 detailFormatter: function (index, row) {
                     var html = [];
-                    html.push('<p><a href="http://pub.wxhouse.com/HTBA/SaleCert_Detail.pub?idx='+ row.idx+ '" target="_blank">');
+                    var durl = [[${houseDetailAction}]];
+                    var purl = [[${housePdfAction}]];
+                    html.push('<p><a href="'+durl+'?idx='+ row.idx+ '" target="_blank">');
                     html.push(row.certno+' 原页面');
                     html.push('</a></p>');
-                    html.push('<p><a href="http://pub.wxhouse.com/HTBA/DownloadManual.pub?idx='+ row.idx+ '" target="_blank">');
+                    html.push('<p><a href="'+purl+'?idx='+ row.idx+ '" target="_blank">');
                     html.push('pdf文件下载</a></p>');
                     return html.join('');
                 }

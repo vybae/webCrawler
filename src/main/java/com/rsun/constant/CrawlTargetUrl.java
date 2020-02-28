@@ -18,6 +18,12 @@ public class CrawlTargetUrl {
     @Value("${houseListAction}")
     private String houseListUrl;
 
+    @Value("${houseDetailAction}")
+    private String houseDetailUrl;
+
+    @Value("${housePdfAction}")
+    private String housePdfString;
+
     public String getIndexUrl() {
         return indexUrl;
     }
@@ -26,15 +32,43 @@ public class CrawlTargetUrl {
         this.indexUrl = indexUrl;
     }
 
-    public String getCertListUrl() {
+    public String getFullCertListUrl() {
         return indexUrl + certListUrl;
     }
 
-    public String getCertDetailUrl() {
+    public String getFullCertDetailUrl() {
         return indexUrl + certDetailUrl;
     }
 
-    public String getHouseListUrl() {
+    public String getFullHouseDetailUrl() {
+        return indexUrl + houseDetailUrl;
+    }
+
+    public String getFullHousePdfString() {
+        return indexUrl + housePdfString;
+    }
+
+    public String getFullHouseListUrl() {
         return indexUrl + houseListUrl;
+    }
+
+    public String getCertListUrl() {
+        return certListUrl;
+    }
+
+    public String getCertDetailUrl() {
+        return certDetailUrl;
+    }
+
+    public String getHouseListUrl() {
+        return houseListUrl;
+    }
+
+    public String getHouseDetailUrl() {
+        return houseDetailUrl;
+    }
+
+    public String getHousePdfString() {
+        return housePdfString;
     }
 }

@@ -150,7 +150,8 @@
                 },
                 detailFormatter: function (index, row) {
                     var html = [];
-                    html.push('<p><a href="http://pub.wxhouse.com/HTBA/House_Detail.pub?idx='+ row.idx+ '" target="_blank">');
+                    var durl = [[${houseDetailAction}]];
+                    html.push('<p><a href="' + durl + '?idx=' + row.idx + '" target="_blank">');
                     html.push(row.pjname + row.buildno +'幢' + row.unitno + '室 详情页面');
                     html.push('</a></p>');
                     return html.join('');

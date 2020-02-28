@@ -36,7 +36,7 @@ public class CrawlServiceImpl implements CrawlService {
         HttpResponseWrapper<List<String>> resp = new HttpResponseWrapper<>();
 
         List<String> projects = new ArrayList<>();
-        String url = crawlTargetUrl.getCertListUrl();
+        String url = crawlTargetUrl.getFullCertListUrl();
         url = condition.attachToUrl(url, true);
 
 //        JXDocument jxd = JXDocument.create(HtmlUtil.readFile("D:\\Projects\\webCrawler\\src\\main\\webapp\\static\\cacheDownload.html"));
@@ -59,7 +59,7 @@ public class CrawlServiceImpl implements CrawlService {
                 Element ele = n.asElement();
                 String certno = ele.selectFirst("td.certno span").text();
                 String html = ele.outerHtml()
-                        .replaceFirst("<a href=\"SaleCert_Detail\\.pub\\?idx=([\\-\\w]+)\" target=\"_blank\">([^<]+)</a>",
+                        .replaceFirst("<a href=\".+\\?idx=([\\-\\w]+)\" target=\"_blank\">([^<]+)</a>",
                                 "<input class=\"chxCert\" idx=\"$1\" pjname=\"$2\" " +
                                         "certno=\"" + certno + "\" type=\"checkbox\"/>" +
                                         "<a href=\"/crawl/getHouseList?idx=$1&certno=" + certno +
@@ -81,8 +81,8 @@ public class CrawlServiceImpl implements CrawlService {
         final HttpResponseWrapper<List<HouseInfo>> resp = new HttpResponseWrapper<>();
         List<List<HouseInfo>> list = new ArrayList<>();
 
-        String url = crawlTargetUrl.getHouseListUrl();
-        url = condition.attachToUrl(url, true);
+        String url = crawlTargetUrl.getFullHouseListUrl();
+        url = url + "?idx=" + condition.getIdx();
         final String certidx = condition.getIdx();
         final String certno = condition.getCertno();
         final String pjname = condition.getPjname();
@@ -92,7 +92,7 @@ public class CrawlServiceImpl implements CrawlService {
             List<HouseInfo> result = new ArrayList<>();
             elements.next().forEach(e -> {
                 HouseInfo h = new HouseInfo();
-                h.setIdx(e.child(7).child(0).attr("href").replaceFirst("House_Detail\\.pub\\?idx=", ""));
+                h.setIdx(e.child(7).child(0).attr("href").replaceFirst("^.+\\?idx=", ""));
                 h.setCertidx(certidx);
                 h.setCertno(certno);
                 h.setPjname(pjname);

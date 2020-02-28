@@ -1,5 +1,6 @@
 package com.rsun.web;
 
+import com.rsun.constant.CrawlTargetUrl;
 import com.rsun.dto.HouseInfo;
 import com.rsun.dto.QueryCondition;
 import com.rsun.dto.StatisticResult;
@@ -36,6 +37,9 @@ public class CrawlController {
     @Autowired
     private HtmlUtil htmlUtil;
 
+    @Autowired
+    private CrawlTargetUrl crawlTargetUrl;
+
     @RequestMapping("/getProjectList")
     public String getProjectList(QueryCondition queryCondition, Model model) {
         HttpResponseWrapper<List<String>> rs = crawlService.getProjectList(queryCondition);
@@ -43,19 +47,21 @@ public class CrawlController {
         model.addAttribute("resp", rs);
         queryCondition.setPage(String.valueOf(rs.getPage()));
         queryCondition.setTotal(String.valueOf(rs.getTotal()));
-        return "/crawl/certList";
+        return "crawl/certList";
     }
 
     @RequestMapping("/getHouseList")
     public String getHouseList(QueryCondition condition, Model model) {
         model.addAttribute("certno", condition.getCertno());
         model.addAttribute("pjname", condition.getPjname());
-        return "/crawl/houseList";
+        model.addAttribute("houseDetailAction", crawlTargetUrl.getFullHouseDetailUrl());
+        return "crawl/houseList";
     }
 
     @ResponseBody
     @RequestMapping("/housesDataJson")
-    public HttpResponseWrapper<List<HouseInfo>> housesDataJson(QueryCondition queryCondition) {
+    public HttpResponseWrapper<List<HouseInfo>> housesDataJson(QueryCondition queryCondition, Model model) {
+        model.addAttribute("queryCondition", queryCondition);
         HttpResponseWrapper<List<HouseInfo>> result;
         String cacheKey = queryCondition.getIdx();
         if ("true".equals(queryCondition.getRefreshCache()) || !jvmAggregator.checkExist(cacheKey)) {
@@ -85,13 +91,15 @@ public class CrawlController {
     @RequestMapping("/getHouseStatistic")
     public String getHouseStatistic(QueryCondition queryCondition, Model model) {
         model.addAttribute("queryCondition", queryCondition);
-        return "/crawl/statistic";
+        model.addAttribute("houseDetailAction", crawlTargetUrl.getFullCertDetailUrl());
+        model.addAttribute("housePdfAction", crawlTargetUrl.getFullHousePdfString());
+        return "crawl/statistic";
     }
 
     @ResponseBody
     @RequestMapping("/houseStatisticJson")
     public HttpResponseWrapper<List<StatisticResult>> houseStatisticJson(QueryCondition queryCondition, Model model) {
-        HttpResponseWrapper<List<HouseInfo>> houses = housesDataJson(queryCondition);
+        HttpResponseWrapper<List<HouseInfo>> houses = housesDataJson(queryCondition, model);
         final String certno = queryCondition.getCertno();
 
         Map<String, String[]> statMap = houses.getResponseContent().stream().collect(Collectors.groupingBy(HouseInfo::getLstusage,
