@@ -33,11 +33,11 @@
     </div>
     <div th:if="${resp.message=='HTTP_ERROR'}">
         <h2>无法拉取到数据</h2>
-        <h2>请查看<a href="http://pub.wxhouse.com/HTBA/SaleCert_List.pub">http://pub.wxhouse.com/HTBA/SaleCert/pagelist</a>是否能访问</h2>
+        <h2>请查看<a th:href="${certListAction}">[[${certListAction}]]</a>是否能访问</h2>
     </div>
     <div th:if="${resp.message=='EXCEED_REQUEST_LIMIT'}">
         <h2>已达到今日的请求次数上限</h2>
-        <h2>请至<a href="http://pub.wxhouse.com/HTBA/SaleCert_List.pub">http://pub.wxhouse.com/HTBA/SaleCert/pagelist</a>查阅</h2>
+        <h2>请至<a th:href="${certListAction}">[[${certListAction}]]</a>查阅</h2>
     </div>
 </div>
 

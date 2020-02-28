@@ -45,6 +45,7 @@ public class CrawlController {
         HttpResponseWrapper<List<String>> rs = crawlService.getProjectList(queryCondition);
         model.addAttribute("result", rs.getResponseContent());
         model.addAttribute("resp", rs);
+        model.addAttribute("certListAction", crawlTargetUrl.getFullCertListUrl());
         queryCondition.setPage(String.valueOf(rs.getPage()));
         queryCondition.setTotal(String.valueOf(rs.getTotal()));
         return "crawl/certList";
