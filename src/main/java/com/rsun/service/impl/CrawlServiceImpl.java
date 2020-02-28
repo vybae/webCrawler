@@ -37,7 +37,7 @@ public class CrawlServiceImpl implements CrawlService {
 
         List<String> projects = new ArrayList<>();
         String url = crawlTargetUrl.getFullCertListUrl();
-        url = condition.attachToUrl(url, true);
+        url = condition.attachToUrl(url);
 
 //        JXDocument jxd = JXDocument.create(HtmlUtil.readFile("D:\\Projects\\webCrawler\\src\\main\\webapp\\static\\cacheDownload.html"));
         Tuple3<JXDocument, AnalysisResponseType, Integer> tuple = htmlUtil.getHtmlDocument(url);
@@ -131,7 +131,7 @@ public class CrawlServiceImpl implements CrawlService {
                                 list.add(convertDoc.apply(jd));
                             }
                             latch.countDown();
-                            System.out.println("Remains Count: " + latch.getCount());
+//                            System.out.println("Remains Count: " + latch.getCount());
                         });
                     }
                     latch.await();

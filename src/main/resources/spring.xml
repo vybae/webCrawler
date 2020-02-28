@@ -34,7 +34,17 @@
         <property name="triggers">
             <list>
                 <ref bean="sendReqBandTrigger"></ref>
+                <ref bean="cleanReqBandQueueTrigger"></ref>
             </list>
+        </property>
+    </bean>
+    <bean id="sendReqBandTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <ref bean="sendReqBandJob" />
+        </property>
+        <!-- 每一秒钟执行一次 -->
+        <property name="cronExpression">
+            <value>0/1 * * * * ?</value>
         </property>
     </bean>
     <bean id="sendReqBandJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
@@ -47,13 +57,23 @@
             <value>sendReqBand</value>
         </property>
     </bean>
-    <bean id="sendReqBandTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <bean id="cleanReqBandQueueTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail">
-            <ref bean="sendReqBandJob" />
+            <ref bean="cleanReqBandQueueJob" />
         </property>
         <!-- 每一秒钟执行一次 -->
         <property name="cronExpression">
             <value>0/1 * * * * ?</value>
+        </property>
+    </bean>
+    <bean id="cleanReqBandQueueJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 执行的类 -->
+        <property name="targetObject">
+            <ref bean="reqBandLimit" />
+        </property>
+        <!-- 类中的方法 -->
+        <property name="targetMethod">
+            <value>cleanExpiredCache</value>
         </property>
     </bean>
 
