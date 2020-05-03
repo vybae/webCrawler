@@ -64,7 +64,7 @@ cat <<EOF
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true">
 
-                <Context path="/" docBase="webCrawler" debug="0" reloadable="true"/>
+        <Context path="/" docBase="webCrawler" debug="0" reloadable="true"/>
 
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
                prefix="localhost_access_log" suffix=".txt"
