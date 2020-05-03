@@ -460,9 +460,9 @@
                         <configuration>
                             <systemProperties>
                                 <systemProperty>
-                                    <name>profiles.active</name>
-                                    <value>development</value>
-                                </systemProperty>
+                                <name>profiles.active</name>
+                                <value>development</value>
+                            </systemProperty>
                             </systemProperties>
                             <httpConnector>
                                 <port>9090</port>

@@ -11,13 +11,12 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.Thymeleaf;
 import org.thymeleaf.dialect.IDialect;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
@@ -33,7 +32,7 @@ import java.util.*;
 @ComponentScan(value = "com.rsun.web", includeFilters = @ComponentScan.Filter(Controller.class))
 @PropertySource(value = {"classpath:config.properties"})
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-public class MvcWebConfig extends WebMvcConfigurerAdapter implements ApplicationContextAware {
+public class MvcWebConfig extends WebMvcConfigurationSupport implements ApplicationContextAware {
 
     private static final String UTF8 = "UTF-8";
 
