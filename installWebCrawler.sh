@@ -41,7 +41,6 @@ cat <<EOF
   <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
 
   <GlobalNamingResources>
-
     <Resource name="UserDatabase" auth="Container"
               type="org.apache.catalina.UserDatabase"
               description="User database that can be updated and saved"
@@ -50,31 +49,26 @@ cat <<EOF
   </GlobalNamingResources>
 
   <Service name="Catalina">
-
     <Connector port="80" protocol="HTTP/1.1"
                connectionTimeout="20000"
                redirectPort="8443" />
 
     <Engine name="Catalina" defaultHost="localhost">
-
       <Realm className="org.apache.catalina.realm.LockOutRealm">
-
         <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
                resourceName="UserDatabase"/>
       </Realm>
-
+      
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true">
-
         <Context path="/" docBase="webCrawler" debug="0" reloadable="true"/>
-
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
                prefix="localhost_access_log" suffix=".txt"
                pattern="%h %l %u %t &quot;%r&quot; %s %b" />
-
       </Host>
     </Engine>
   </Service>
+  
 </Server>
 EOF
 ) > /opt/apache-tomcat-9.0.34/conf/server.xml
