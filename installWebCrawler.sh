@@ -15,6 +15,11 @@ if [ -d /opt/apache-tomcat-9.0.34 ]; then
 fi
 wget https://mirror.bit.edu.cn/apache/tomcat/tomcat-9/v9.0.34/bin/apache-tomcat-9.0.34.tar.gz
 tar zxvf apache-tomcat-9.0.34.tar.gz -C /opt/
+# 环境变量配置
+echo '' >> /etc/profile
+echo '# Tomcat 环境变量' >> /etc/profile
+echo 'export CATALINA_HOME=/opt/apache-tomcat-9.0.34' >> /etc/profile
+source /etc/profile
 # 下载项目
 if [ -d webCrawler ]; then
   rm -rf ~/webCrawler
