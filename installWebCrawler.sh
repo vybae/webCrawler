@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# 停止tomcat服务
+ps -ef | grep tomcat | grep -v grep | awk  '{print "kill -9 " $2}' | sh
 # 安装环境必要的依赖
 yum install java java-1.8.0-openjdk-devel git wget -y
 # 切换到root目录
@@ -77,5 +79,4 @@ cat <<EOF
 EOF
 ) > /opt/apache-tomcat-9.0.34/conf/server.xml
 # 启动tomcat
-/opt/apache-tomcat-9.0.34/bin/shutdown.sh
 /opt/apache-tomcat-9.0.34/bin/startup.sh
