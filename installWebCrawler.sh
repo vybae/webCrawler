@@ -3,7 +3,7 @@
 # 停止tomcat服务
 ps -ef | grep tomcat | grep -v grep | awk  '{print "kill -9 " $2}' | sh
 # 安装环境必要的依赖
-yum install java java-1.8.0-openjdk-devel git wget -y
+yum install java java-1.8.0-openjdk-devel git wget maven -y
 # 切换到root目录
 cd ~
 # 下载tomcat
@@ -27,8 +27,8 @@ fi
 git clone https://github.com/junyalu/webCrawler.git
 # 编译打包
 cd ~/webCrawler
-chmod +x ./mvnw
-./mvnw clean package
+#chmod +x ./mvnw
+mvn clean package
 # 清空webapps目录
 rm -rf /opt/apache-tomcat-9.0.34/webapps/*
 # 将war包拷贝到tomcat应用程序目录下
