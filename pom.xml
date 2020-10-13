@@ -22,7 +22,7 @@
         <jsoup.version>1.11.3</jsoup.version>
         <sqlite.version>3.25.2</sqlite.version>
 
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <jetty.version>9.4.16.v20190411</jetty.version>
     </properties>
 
